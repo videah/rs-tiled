@@ -1,13 +1,13 @@
 extern crate tiled;
+extern crate ggez;
 
-use std::path::Path;
-use std::fs::File;
 use tiled::parse;
+use ggez::filesystem::Filesystem;
 
 fn main() {
-    let file = File::open(&Path::new("assets/tiled_base64_zlib.tmx")).unwrap();
-    println!("Opened file");
-    let map = parse(file).unwrap();
+    let mut fs = Filesystem::new("rs-tiled", "Difarem").unwrap();
+
+    let map = parse(&mut fs, "/tiled_base64_zlib.tmx").unwrap();
     println!("{:?}", map);
     println!("{:?}", map.get_tileset_by_gid(22));
 }

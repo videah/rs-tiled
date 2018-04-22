@@ -1,24 +1,26 @@
 extern crate tiled;
+extern crate ggez;
 
 use std::path::Path;
-use std::fs::File;
-use tiled::{parse, parse_file, parse_tileset, Map, PropertyValue, TiledError};
+use tiled::{parse, parse_tileset, Map, PropertyValue, TiledError};
+use ggez::{GameResult, filesystem::Filesystem};
 
-fn read_from_file(p: &Path) -> Result<Map, TiledError> {
-    let file = File::open(p).unwrap();
-    return parse(file);
+fn init_filesystem() -> GameResult<Filesystem> {
+    Filesystem::new("rs-tiled", "Difarem")
 }
 
-fn read_from_file_with_path(p: &Path) -> Result<Map, TiledError> {
-    return parse_file(p);
+fn read_from_file<P: AsRef<Path>>(fs: &mut Filesystem, p: P) -> Result<Map, TiledError> {
+    parse(fs, p)
 }
 
 #[test]
 fn test_gzip_and_zlib_encoded_and_raw_are_the_same() {
-    let z = read_from_file(&Path::new("assets/tiled_base64_zlib.tmx")).unwrap();
-    let g = read_from_file(&Path::new("assets/tiled_base64_gzip.tmx")).unwrap();
-    let r = read_from_file(&Path::new("assets/tiled_base64.tmx")).unwrap();
-    let c = read_from_file(&Path::new("assets/tiled_csv.tmx")).unwrap();
+    let mut fs = init_filesystem().unwrap();
+
+    let z = read_from_file(&mut fs, "/tiled_base64_zlib.tmx").unwrap();
+    let g = read_from_file(&mut fs, "/tiled_base64_gzip.tmx").unwrap();
+    let r = read_from_file(&mut fs, "/tiled_base64.tmx").unwrap();
+    let c = read_from_file(&mut fs, "/tiled_csv.tmx").unwrap();
     assert_eq!(z, g);
     assert_eq!(z, r);
     assert_eq!(z, c);
@@ -26,21 +28,27 @@ fn test_gzip_and_zlib_encoded_and_raw_are_the_same() {
 
 #[test]
 fn test_external_tileset() {
-    let r = read_from_file(&Path::new("assets/tiled_base64.tmx")).unwrap();
-    let e = read_from_file_with_path(&Path::new("assets/tiled_base64_external.tmx")).unwrap();
+    let mut fs = init_filesystem().unwrap();
+
+    let r = read_from_file(&mut fs, "/tiled_base64.tmx").unwrap();
+    let e = read_from_file(&mut fs, "/tiled_base64_external.tmx").unwrap();
     assert_eq!(r, e);
 }
 
 #[test]
 fn test_just_tileset() {
-    let r = read_from_file(&Path::new("assets/tiled_base64.tmx")).unwrap();
-    let t = parse_tileset(File::open(Path::new("assets/tilesheet.tsx")).unwrap(), 1).unwrap();
+    let mut fs = init_filesystem().unwrap();
+
+    let r = read_from_file(&mut fs, "/tiled_base64.tmx").unwrap();
+    let t = parse_tileset(fs.open("/tilesheet.tsx").unwrap(), 1).unwrap();
     assert_eq!(r.tilesets[0], t);
 }
 
 #[test]
 fn test_image_layers() {
-    let r = read_from_file(&Path::new("assets/tiled_image_layers.tmx")).unwrap();
+    let mut fs = init_filesystem().unwrap();
+
+    let r = read_from_file(&mut fs, "/tiled_image_layers.tmx").unwrap();
     assert_eq!(r.image_layers.len(), 2);
     {
         let first = &r.image_layers[0];
@@ -66,7 +74,9 @@ fn test_image_layers() {
 
 #[test]
 fn test_tile_property() {
-    let r = read_from_file(&Path::new("assets/tiled_base64.tmx")).unwrap();
+    let mut fs = init_filesystem().unwrap();
+
+    let r = read_from_file(&mut fs, "/tiled_base64.tmx").unwrap();
     let prop_value: String = if let Some(&PropertyValue::StringValue(ref v)) =
         r.tilesets[0].tiles[0].properties.get("a tile property")
     {

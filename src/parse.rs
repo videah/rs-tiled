@@ -4,6 +4,7 @@ use xml::reader::{EventReader, XmlEvent};
 use xml::attribute::OwnedAttribute;
 use flate2::read::{GzDecoder, ZlibDecoder};
 use base64::u8de as decode_base64;
+use ggez::filesystem::Filesystem;
 
 use TiledError;
 use Map;
@@ -147,7 +148,8 @@ pub(crate) fn convert_to_u32(all: &Vec<u8>, width: u32) -> Vec<Vec<u32>> {
 
 pub(crate) fn parse_impl<R: Read, P: AsRef<Path>>(
     reader: R,
-    map_path: Option<P>,
+    fs: &mut Filesystem,
+    map_path: P,
 ) -> Result<Map, TiledError> {
     let mut parser = EventReader::new(reader);
     loop {
@@ -156,7 +158,7 @@ pub(crate) fn parse_impl<R: Read, P: AsRef<Path>>(
                 name, attributes, ..
             } => {
                 if name.local_name == "map" {
-                    return Map::new(&mut parser, attributes, map_path);
+                    return Map::new(&mut parser, attributes, fs, map_path);
                 }
             }
             XmlEvent::EndDocument => {

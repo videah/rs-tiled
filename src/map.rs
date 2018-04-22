@@ -4,6 +4,7 @@ use std::path::Path;
 use xml::reader::EventReader;
 use xml::reader::XmlEvent;
 use xml::attribute::OwnedAttribute;
+use ggez::filesystem::Filesystem;
 
 use {Colour, ImageLayer, Layer, ObjectGroup, Orientation, Tileset};
 use properties::{parse_properties, Properties};
@@ -30,7 +31,8 @@ impl Map {
     pub(crate) fn new<R: Read, P: AsRef<Path>>(
         parser: &mut EventReader<R>,
         attrs: Vec<OwnedAttribute>,
-        map_path: Option<P>,
+        fs: &mut Filesystem,
+        map_path: P,
     ) -> Result<Map, TiledError> {
         let (c, (v, o, w, h, tw, th)) = get_attrs!(
             attrs,
@@ -50,7 +52,7 @@ impl Map {
         let mut object_groups = Vec::new();
         parse_tag!(parser, "map",
                    "tileset" => | attrs| {
-                        tilesets.push(try!(Tileset::new(parser, attrs, map_path.as_ref())));
+                        tilesets.push(try!(Tileset::new(parser, attrs, fs, map_path.as_ref())));
                         Ok(())
                    },
                    "layer" => |attrs| {

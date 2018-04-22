@@ -1,9 +1,9 @@
 extern crate base64;
 extern crate flate2;
 extern crate xml;
+extern crate ggez;
 
 use std::str::FromStr;
-use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
@@ -91,19 +91,12 @@ impl FromStr for Orientation {
     }
 }
 
-/// Parse a file hopefully containing a Tiled map and try to parse it.  If the
-/// file has an external tileset, the tileset file will be loaded using a path
-/// relative to the map file's path.
-pub fn parse_file<P: AsRef<Path>>(path: P) -> Result<Map, TiledError> {
-    let file = File::open(path.as_ref())
-        .map_err(|_| TiledError::Other(format!("Map file not found: {:?}", path.as_ref())))?;
-    parse_impl(file, Some(path))
-}
+use ggez::filesystem::Filesystem;
 
-/// Parse a buffer hopefully containing the contents of a Tiled file and try to
-/// parse it.
-pub fn parse<R: Read>(reader: R) -> Result<Map, TiledError> {
-    parse_impl::<_, &Path>(reader, None)
+pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map, TiledError> {
+    let file = fs.open(path.as_ref())
+        .map_err(|err| TiledError::GgezError(err))?;
+    parse_impl(file, fs, path)
 }
 
 /// Parse a buffer hopefully containing the contents of a Tiled tileset.

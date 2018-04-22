@@ -3,6 +3,7 @@ use std::io::Error;
 use std::fmt;
 use xml::reader::Error as XmlError;
 use base64::Base64Error;
+use ggez::GameError;
 
 /// Errors which occured when parsing the file
 #[derive(Debug)]
@@ -16,6 +17,7 @@ pub enum TiledError {
     Base64DecodingError(Base64Error),
     XmlDecodingError(XmlError),
     PrematureEnd(String),
+    GgezError(GameError),
     Other(String),
 }
 
@@ -27,6 +29,7 @@ impl fmt::Display for TiledError {
             TiledError::Base64DecodingError(ref e) => write!(fmt, "{}", e),
             TiledError::XmlDecodingError(ref e) => write!(fmt, "{}", e),
             TiledError::PrematureEnd(ref e) => write!(fmt, "{}", e),
+            TiledError::GgezError(ref e) => write!(fmt, "{}", e),
             TiledError::Other(ref s) => write!(fmt, "{}", s),
         }
     }
@@ -41,6 +44,7 @@ impl std::error::Error for TiledError {
             TiledError::Base64DecodingError(ref e) => e.description(),
             TiledError::XmlDecodingError(ref e) => e.description(),
             TiledError::PrematureEnd(ref s) => s.as_ref(),
+            TiledError::GgezError(ref e) => e.description(),
             TiledError::Other(ref s) => s.as_ref(),
         }
     }
@@ -51,6 +55,7 @@ impl std::error::Error for TiledError {
             TiledError::Base64DecodingError(ref e) => Some(e as &std::error::Error),
             TiledError::XmlDecodingError(ref e) => Some(e as &std::error::Error),
             TiledError::PrematureEnd(_) => None,
+            TiledError::GgezError(ref e) => Some(e as &std::error::Error),
             TiledError::Other(_) => None,
         }
     }

@@ -1,8 +1,8 @@
 use std::io::Read;
-use std::fs::File;
 use std::path::Path;
 use xml::reader::{EventReader, XmlEvent};
 use xml::attribute::OwnedAttribute;
+use ggez::filesystem::Filesystem;
 
 use {Image, Tile};
 use error::TiledError;
@@ -27,9 +27,10 @@ impl Tileset {
     pub(crate) fn new<R: Read, P: AsRef<Path>>(
         parser: &mut EventReader<R>,
         attrs: Vec<OwnedAttribute>,
-        map_path: Option<P>,
+        fs: &mut Filesystem,
+        map_path: P,
     ) -> Result<Tileset, TiledError> {
-        Tileset::new_internal(parser, &attrs).or_else(|_| Tileset::new_reference(&attrs, map_path))
+        Tileset::new_internal(parser, &attrs).or_else(|_| Tileset::new_reference(&attrs, fs, map_path))
     }
 
     pub(crate) fn new_internal<R: Read>(
@@ -72,7 +73,8 @@ impl Tileset {
 
     pub(crate) fn new_reference<P: AsRef<Path>>(
         attrs: &Vec<OwnedAttribute>,
-        map_path: Option<P>,
+        fs: &mut Filesystem,
+        map_path: P,
     ) -> Result<Tileset, TiledError> {
         let ((), (first_gid, source)) = get_attrs!(
            attrs,
@@ -81,12 +83,9 @@ impl Tileset {
                       ("source", name, |v| Some(v))],
            TiledError::MalformedAttributes("tileset must have a firstgid, name tile width and height with correct types".to_string()));
 
-        let tileset_path = map_path.ok_or(TiledError::Other("Maps with external tilesets must know their file location.  See parse_with_path(Path).".to_string()))?.as_ref().with_file_name(source);
-        let file = File::open(&tileset_path).map_err(|_| {
-            TiledError::Other(format!(
-                "External tileset file not found: {:?}",
-                tileset_path
-            ))
+        let tileset_path = map_path.as_ref().with_file_name(source);
+        let file = fs.open(&tileset_path).map_err(|err| {
+            TiledError::GgezError(err)
         })?;
         Tileset::new_external(file, first_gid)
     }
