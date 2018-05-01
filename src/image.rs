@@ -57,7 +57,8 @@ impl Image<GgezImage> {
                        ("height", height, |v:String| v.parse().ok())],
             TiledError::MalformedAttributes("image must have a source, width and height with correct types".to_string()));
 
-        let image = GgezImage::new(ctx, base_path.as_ref().join(&s)).map_err(|e| TiledError::GgezError(e))?;
+        let image_path = base_path.as_ref().with_file_name(&s);
+        let image = GgezImage::new(ctx, image_path).map_err(|e| TiledError::GgezError(e))?;
 
         parse_tag!(parser, "image", "" => |_| Ok(()));
         Ok(Image::<GgezImage> {
@@ -67,5 +68,22 @@ impl Image<GgezImage> {
             transparent_colour: c,
             image,
         })
+    }
+}
+
+use ggez::graphics::{Drawable, DrawParam, BlendMode};
+use ggez::GameResult;
+
+impl Drawable for Image<GgezImage> {
+    fn draw_ex(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+        self.image.draw_ex(ctx, param)
+    }
+
+    fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
+        self.image.set_blend_mode(mode)
+    }
+
+    fn get_blend_mode(&self) -> Option<BlendMode> {
+        self.image.get_blend_mode()
     }
 }
