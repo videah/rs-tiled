@@ -1,7 +1,7 @@
 extern crate tiled;
 extern crate ggez;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tiled::{parse, parse_tileset, Map, PropertyValue, TiledError};
 use ggez::{GameResult, filesystem::Filesystem};
 
@@ -9,7 +9,7 @@ fn init_filesystem() -> GameResult<Filesystem> {
     Filesystem::new("rs-tiled", "Difarem")
 }
 
-fn read_from_file<P: AsRef<Path>>(fs: &mut Filesystem, p: P) -> Result<Map, TiledError> {
+fn read_from_file<P: AsRef<Path>>(fs: &mut Filesystem, p: P) -> Result<Map<()>, TiledError> {
     parse(fs, p)
 }
 
@@ -66,7 +66,7 @@ fn test_image_layers() {
             .image
             .as_ref()
             .expect(&format!("{}'s image shouldn't be None", second.name));
-        assert_eq!(image.source, "tilesheet.png");
+        assert_eq!(image.source, PathBuf::from("tilesheet.png"));
         assert_eq!(image.width, 448);
         assert_eq!(image.height, 192);
     }

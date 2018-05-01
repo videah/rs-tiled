@@ -5,6 +5,8 @@ use xml::attribute::OwnedAttribute;
 use flate2::read::{GzDecoder, ZlibDecoder};
 use base64::u8de as decode_base64;
 use ggez::filesystem::Filesystem;
+use ggez::Context;
+use ggez::graphics::Image as GgezImage;
 
 use TiledError;
 use Map;
@@ -150,6 +152,31 @@ pub(crate) fn parse_impl<R: Read, P: AsRef<Path>>(
     reader: R,
     fs: &mut Filesystem,
     map_path: P,
+) -> Result<Map<()>, TiledError> {
+    let mut parser = EventReader::new(reader);
+    loop {
+        match try!(parser.next().map_err(TiledError::XmlDecodingError)) {
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => {
+                if name.local_name == "map" {
+                    return Map::<()>::new(&mut parser, attributes, fs, map_path);
+                }
+            }
+            XmlEvent::EndDocument => {
+                return Err(TiledError::PrematureEnd(
+                    "Document ended before map was parsed".to_string(),
+                ))
+            }
+            _ => {}
+        }
+    }
+}
+
+pub(crate) fn parse_full_impl<R: Read, P: AsRef<Path>>(
+    reader: R,
+    ctx: &mut Context,
+    map_path: P,
 ) -> Result<Map, TiledError> {
     let mut parser = EventReader::new(reader);
     loop {
@@ -158,12 +185,12 @@ pub(crate) fn parse_impl<R: Read, P: AsRef<Path>>(
                 name, attributes, ..
             } => {
                 if name.local_name == "map" {
-                    return Map::new(&mut parser, attributes, fs, map_path);
+                    return Map::<GgezImage>::new(&mut parser, attributes, ctx, map_path);
                 }
             }
             XmlEvent::EndDocument => {
                 return Err(TiledError::PrematureEnd(
-                    "Document ended before map was parsed".to_string(),
+                        "Document ended before map was parsed".to_string(),
                 ))
             }
             _ => {}

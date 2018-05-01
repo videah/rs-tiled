@@ -6,6 +6,7 @@ extern crate ggez;
 use std::str::FromStr;
 use std::io::Read;
 use std::path::Path;
+use ggez::Context;
 
 mod error;
 pub use error::{ParseTileError, TiledError};
@@ -38,7 +39,7 @@ mod frame;
 pub use frame::Frame;
 
 mod parse;
-use parse::{parse_animation, parse_data, parse_impl};
+use parse::{parse_animation, parse_data, parse_impl, parse_full_impl};
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct Colour {
@@ -93,10 +94,16 @@ impl FromStr for Orientation {
 
 use ggez::filesystem::Filesystem;
 
-pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map, TiledError> {
+pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map<()>, TiledError> {
     let file = fs.open(path.as_ref())
         .map_err(|err| TiledError::GgezError(err))?;
     parse_impl(file, fs, path)
+}
+
+pub fn parse_full<P: AsRef<Path>>(ctx: &mut Context, path: P) -> Result<Map, TiledError> {
+   let file = ctx.filesystem.open(path.as_ref())
+       .map_err(|err| TiledError::GgezError(err))?;
+   parse_full_impl(file, ctx, path)
 }
 
 /// Parse a buffer hopefully containing the contents of a Tiled tileset.
@@ -104,6 +111,6 @@ pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map, TiledE
 /// External tilesets do not have a firstgid attribute.  That lives in the
 /// map. You must pass in `first_gid`.  If you do not need to use gids for anything,
 /// passing in 1 will work fine.
-pub fn parse_tileset<R: Read>(reader: R, first_gid: u32) -> Result<Tileset, TiledError> {
-    Tileset::new_external(reader, first_gid)
+pub fn parse_tileset<R: Read>(reader: R, first_gid: u32) -> Result<Tileset<()>, TiledError> {
+    Tileset::<()>::new_external(reader, first_gid)
 }
