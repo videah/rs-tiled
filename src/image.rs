@@ -75,15 +75,19 @@ use ggez::graphics::{Drawable, DrawParam, BlendMode};
 use ggez::GameResult;
 
 impl Drawable for Image<GgezImage> {
-    fn draw_ex(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
-        self.image.draw_ex(ctx, param)
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+        self.image.draw_(ctx, param)
     }
 
     fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
         self.image.set_blend_mode(mode)
     }
 
-    fn get_blend_mode(&self) -> Option<BlendMode> {
-        self.image.get_blend_mode()
+    fn blend_mode(&self) -> Option<BlendMode> {
+        self.image.blend_mode()
+    }
+    
+    fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
+        self.image.dimensions(ctx)
     }
 }
