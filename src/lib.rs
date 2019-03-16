@@ -6,7 +6,7 @@ extern crate ggez;
 use std::str::FromStr;
 use std::io::Read;
 use std::path::Path;
-use ggez::Context;
+use ggez::{Context, filesystem};
 
 mod error;
 pub use error::{ParseTileError, TiledError};
@@ -92,16 +92,14 @@ impl FromStr for Orientation {
     }
 }
 
-use ggez::filesystem::Filesystem;
-
-pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map<()>, TiledError> {
-    let file = fs.open(path.as_ref())
-        .map_err(|err| TiledError::GgezError(err))?;
-    parse_impl(file, fs, path)
-}
+// pub fn parse<P: AsRef<Path>>(fs: &mut Filesystem, path: P) -> Result<Map<()>, TiledError> {
+//     let file = fs.open(path.as_ref())
+//         .map_err(|err| TiledError::GgezError(err))?;
+//     parse_impl(file, fs, path)
+// }
 
 pub fn parse_full<P: AsRef<Path>>(ctx: &mut Context, path: P) -> Result<Map, TiledError> {
-   let file = ctx.filesystem.open(path.as_ref())
+   let file = filesystem::open(ctx, path.as_ref())
        .map_err(|err| TiledError::GgezError(err))?;
    parse_full_impl(file, ctx, path)
 }
