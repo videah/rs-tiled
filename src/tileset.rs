@@ -3,7 +3,7 @@ use std::path::Path;
 use xml::reader::{EventReader, XmlEvent};
 use xml::attribute::OwnedAttribute;
 use ggez::graphics::Image as GgezImage;
-use ggez::filesystem::Filesystem;
+use ggez::filesystem;
 use ggez::Context;
 
 use {Image, Tile};
@@ -86,7 +86,7 @@ impl Tileset<()> {
            TiledError::MalformedAttributes("tileset must have a firstgid, name tile width and height with correct types".to_string()));
 
         let tileset_path = map_path.as_ref().with_file_name(source);
-        let file = fs.open(&tileset_path).map_err(|err| {
+        let file = filesystem::open(ctx, &tileset_path).map_err(|err| {
             TiledError::GgezError(err)
         })?;
         Tileset::<()>::new_external(file, first_gid)
@@ -219,7 +219,7 @@ impl Tileset<GgezImage> {
            TiledError::MalformedAttributes("tileset must have a firstgid, name tile width and height with correct types".to_string()));
 
         let tileset_path = map_path.as_ref().with_file_name(source);
-        let file = ctx.filesystem.open(&tileset_path).map_err(|err| {
+        let file = filesystem::open(ctx, &tileset_path).map_err(|err| {
             TiledError::GgezError(err)
         })?;
         Tileset::<GgezImage>::new_external(file, first_gid, ctx, tileset_path)
