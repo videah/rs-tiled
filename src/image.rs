@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use xml::reader::{EventReader, XmlEvent};
 use xml::attribute::OwnedAttribute;
 use ggez::graphics::Image as GgezImage;
+use ggez::graphics::Rect;
 use ggez::Context;
 
 use TiledError;
@@ -76,7 +77,7 @@ use ggez::GameResult;
 
 impl Drawable for Image<GgezImage> {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
-        self.image.draw_(ctx, param)
+        self.image.draw(ctx, param)
     }
 
     fn set_blend_mode(&mut self, mode: Option<BlendMode>) {
@@ -88,6 +89,6 @@ impl Drawable for Image<GgezImage> {
     }
     
     fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
-        self.image.dimensions(ctx)
+        self.image.dimensions()
     }
 }
