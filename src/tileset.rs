@@ -29,7 +29,7 @@ impl Tileset<()> {
     pub(crate) fn new<R: Read, P: AsRef<Path>>(
         parser: &mut EventReader<R>,
         attrs: Vec<OwnedAttribute>,
-        fs: &mut Filesystem,
+        fs: &mut filesystem::Filesystem,
         map_path: P,
     ) -> Result<Tileset<()>, TiledError> {
         Tileset::<()>::new_internal(parser, &attrs).or_else(|_| Tileset::<()>::new_reference(&attrs, fs, map_path))
@@ -73,49 +73,49 @@ impl Tileset<()> {
         })
     }
 
-    pub(crate) fn new_reference<P: AsRef<Path>>(
-        attrs: &Vec<OwnedAttribute>,
-        fs: &mut Filesystem,
-        map_path: P,
-    ) -> Result<Tileset<()>, TiledError> {
-        let ((), (first_gid, source)) = get_attrs!(
-           attrs,
-           optionals: [],
-           required: [("firstgid", first_gid, |v:String| v.parse().ok()),
-                      ("source", name, |v| Some(v))],
-           TiledError::MalformedAttributes("tileset must have a firstgid, name tile width and height with correct types".to_string()));
+//     pub(crate) fn new_reference<P: AsRef<Path>>(
+//         attrs: &Vec<OwnedAttribute>,
+//         fs: &mut filesystem::Filesystem,
+//         map_path: P,
+//     ) -> Result<Tileset<()>, TiledError> {
+//         let ((), (first_gid, source)) = get_attrs!(
+//            attrs,
+//            optionals: [],
+//            required: [("firstgid", first_gid, |v:String| v.parse().ok()),
+//                       ("source", name, |v| Some(v))],
+//            TiledError::MalformedAttributes("tileset must have a firstgid, name tile width and height with correct types".to_string()));
 
-        let tileset_path = map_path.as_ref().with_file_name(source);
-        let file = filesystem::open(ctx, &tileset_path).map_err(|err| {
-            TiledError::GgezError(err)
-        })?;
-        Tileset::<()>::new_external(file, first_gid)
-    }
+//         let tileset_path = map_path.as_ref().with_file_name(source);
+//         let file = filesystem::open(ctx, &tileset_path).map_err(|err| {
+//             TiledError::GgezError(err)
+//         })?;
+//         Tileset::<()>::new_external(file, first_gid)
+//     }
 
-    pub(crate) fn new_external<R: Read>(file: R, first_gid: u32) -> Result<Tileset<()>, TiledError> {
-        let mut tileset_parser = EventReader::new(file);
-        loop {
-            match try!(tileset_parser.next().map_err(TiledError::XmlDecodingError)) {
-                XmlEvent::StartElement {
-                    name, attributes, ..
-                } => {
-                    if name.local_name == "tileset" {
-                        return Tileset::<()>::parse_external_tileset(
-                            first_gid,
-                            &mut tileset_parser,
-                            &attributes,
-                        );
-                    }
-                }
-                XmlEvent::EndDocument => {
-                    return Err(TiledError::PrematureEnd(
-                        "Tileset Document ended before map was parsed".to_string(),
-                    ))
-                }
-                _ => {}
-            }
-        }
-    }
+//     pub(crate) fn new_external<R: Read>(file: R, first_gid: u32) -> Result<Tileset<()>, TiledError> {
+//         let mut tileset_parser = EventReader::new(file);
+//         loop {
+//             match try!(tileset_parser.next().map_err(TiledError::XmlDecodingError)) {
+//                 XmlEvent::StartElement {
+//                     name, attributes, ..
+//                 } => {
+//                     if name.local_name == "tileset" {
+//                         return Tileset::<()>::parse_external_tileset(
+//                             first_gid,
+//                             &mut tileset_parser,
+//                             &attributes,
+//                         );
+//                     }
+//                 }
+//                 XmlEvent::EndDocument => {
+//                     return Err(TiledError::PrematureEnd(
+//                         "Tileset Document ended before map was parsed".to_string(),
+//                     ))
+//                 }
+//                 _ => {}
+//             }
+//         }
+//     }
 
     fn parse_external_tileset<R: Read>(
         first_gid: u32,
