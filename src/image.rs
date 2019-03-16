@@ -88,7 +88,7 @@ impl Drawable for Image<GgezImage> {
         self.image.blend_mode()
     }
     
-    fn dimensions(&self, ctx: &mut Context) -> Option<Rect> {
+    fn dimensions(&self, ctx: &mut Context) {
         self.image.dimensions()
     }
 }
